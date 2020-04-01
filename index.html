@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang='en'>
+  <head>
+    <meta charset='utf-8'>
+    <link rel='icon' href='assets/favicon.ico'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <link rel='stylesheet' href='css/bulma.min.css'>
+    <link rel='stylesheet' href='css/bulma-switch.min.css'>
+    <link rel='stylesheet' href='css/bulma-tooltip.min.css'>
+    <link rel='stylesheet' href='css/spinner.css'>
+    <script src='https://cdn.jsdelivr.net/npm/vue/dist/vue.js'></script>
+    <link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.0.10/css/all.css' integrity='sha384-+d0P83n9kaQMCwj8F4RJB66tzIwOKmrdb46+porD/OvrJ+37WqIM7UoBtwHO6Nlg' crossorigin='anonymous'>
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="mask-icon" href="assets/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="manifest" href="manifest.json">
+    <title>Papa BLE</title>
+  </head>
+  <body>
+    <section class='section' id='app' v-cloak>
+      <div class='container'>
+          <div class='card'>
+            <header class='card-header'>
+              <p class='card-header-title'>{{ device_name }} &nbsp;&nbsp;
+                <span class='spinner spinner-slow spinner-blue' v-if='connected === true'></span>
+              </p>
+              <div class='card-header-icon tooltip is-tooltip-left' data-tooltip="Tap to connect" v-bind:class="{ 'is-tooltip-active': !connected }">
+                <span class='icon' v-on:change='connect'>
+                  <div class="field">
+                    <input id="switchConnect" type="checkbox" name="switchConnect" class="switch is-rounded is-info is-small" v-model="switchConnected">
+                    <label for="switchConnect"></label>
+                  </div>
+                </span>
+              </div>
+            </header>
+            <div class='card-content'>
+              <div class='content'>
+                <div class='card has-text-centered' v-show='ec_connected === true'>
+                  <div class='card-content'>
+                    <p class='title is-size-1'>{{ ec }}
+                      <span class='is-size-5'>{{ ec_unit }}</span>
+                      <a href='#' class='is-size-5' v-show='connected === true' v-on:click="ec_config">
+                      <span class='icon is-pulled-right'><i style='color:#DDDDDD;' class='fas fa-sliders-h'></i></span>
+                      </a>
+                    </p>
+                  </div>
+                </div>
+                <div class='card has-text-centered' v-show='ph_connected === true'>
+                  <div class='card-content'>
+                    <p class='title is-size-1'>{{ ph }}
+                      <span class='is-size-5'>{{ ph_unit }}</span>
+                      <a href='#' class='is-size-5' v-on:click="ph_config">
+                      <span class='icon is-pulled-right'><i style='color:#DDDDDD;' class='fas fa-sliders-h'></i></span>
+                      </a>
+                    </p>
+                  </div>
+                </div>
+                <div class='card has-text-centered' v-show='orp_connected === true'>
+                  <div class='card-content'>
+                    <p class='title is-size-1'>{{ orp }}
+                      <span class='is-size-5'>{{ orp_unit }}</span>
+                      <a href='#' class='is-size-5' v-show='connected === true' v-on:click="orp_config">
+                      <span class='icon is-pulled-right'><i style='color:#DDDDDD;' class='fas fa-sliders-h'></i></span>
+                      </a>
+                    </p>
+                  </div>
+                </div>
+                <div class='card has-text-centered' v-show='connected === true'>
+                  <div class='card-content'>
+                    <p class='title is-size-1'>{{ temp }}
+                      <span class='is-size-5'>{{ temp_unit }}</span>
+                    </p>
+                  </div>
+                </div>
+                <!-- ^ card -->
+              </div>
+              <!--  ^content -->
+            </div>
+            <!-- ^ card-content -->
+          </div>
+          <!-- ^ card -->
+      </div>
+      <!-- ^ container -->
+      <div class="ec_config_modal modal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+          <header class="modal-card-head">
+            <p class="modal-card-title">EC Configuration </p>
+            <button class="ec_modal_close delete"></button>
+          </header>
+          <section class="modal-card-body">
+            <table class="table is-striped is-narrow is-hoverable is-fullwidth is-size-6">
+              <tbody>
+                <tr>
+                  <td>Offset</td>
+                  <td>{{ ec_offset }}</td>
+                  <td><span class="button is-small" v-on:click="ec_set_offset">Calibrate</span></td>
+                </tr>               
+                <tr>
+                  <td>Low</td>
+                  <td></td>
+                  <td><span class="button is-small" v-on:click="ec_low">Calibrate</span></td>
+                </tr>
+                <tr>
+                  <td>&emsp;Reading</td>
+                  <td>{{ ec_low_read }}</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>&emsp;Reference</td>
+                  <td>{{ ec_low_ref }}</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>High</td>
+                  <td></td>
+                  <td><span class="button is-small" v-on:click="ec_high">Calibrate</span></td>
+                </tr>
+                <tr>
+                  <td>&emsp;Reading</td>
+                  <td>{{ ec_high_read }}</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>&emsp;Reference</td>
+                  <td>{{ ec_high_ref }}</td>
+                  <td></td>
+                </tr>
+                <tr>
+                <tr>
+                  <td>Temperature</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>&emsp;Constant</td>
+                  <td>{{ ec_temp_constant }}</td>
+                  <td><span class="button is-small" v-on:click="ec_set_temp_constant">Set</span></td>
+                </tr>
+                <tr>
+                  <td>&emsp;Coefficient</td>
+                  <td>{{ ec_temp_coefficient }}</td>
+                  <td><span class="button is-small" v-on:click="ec_set_temp_coefficient">Set</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+          <footer class="modal-card-foot">
+            <button class="button is-danger" v-on:click="ec_reset">Reset</button>
+          </footer>
+        </div>
+        <!-- ^ modal-card -->
+      </div>
+      <!-- ^ ec_config_modal -->
+      <div class="ph_config_modal modal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+          <header class="modal-card-head">
+            <p class="modal-card-title">pH Configuration </p>
+            <button class="ph_modal_close delete"></button>
+          </header>
+          <section class="modal-card-body">
+            <table class="table is-striped is-narrow is-hoverable is-fullwidth is-size-6">
+              <tbody>
+                <tr>
+                  <td>Offset</td>
+                  <td>{{ ph_offset }}</td>
+                  <td><span class="button is-small" v-on:click="ph_set_offset">Calibrate</span></td>
+                </tr>               
+                <tr>
+                  <td>Low</td>
+                  <td></td>
+                  <td><span class="button is-small" v-on:click="ph_low">Calibrate</span></td>
+                </tr>
+                <tr>
+                  <td>&emsp;Reading</td>
+                  <td>{{ ph_low_read }}</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>&emsp;Reference</td>
+                  <td>{{ ph_low_ref }}</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>High</td>
+                  <td></td>
+                  <td><span class="button is-small" v-on:click="ph_high">Calibrate</span></td>
+                </tr>
+                <tr>
+                  <td>&emsp;Reading</td>
+                  <td>{{ ph_high_read }}</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>&emsp;Reference</td>
+                  <td>{{ ph_high_ref }}</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+          <footer class="modal-card-foot">
+            <button class="button is-danger" v-on:click="ph_reset">Reset</button>
+          </footer>
+        </div>
+        <!-- ^ modal-card -->
+      </div>
+      <!-- ^ ph_config_modal -->
+      <div class="orp_config_modal modal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+          <header class="modal-card-head">
+            <p class="modal-card-title">ORP Configuration </p>
+            <button class="orp_modal_close delete"></button>
+          </header>
+          <section class="modal-card-body">
+            <table class="table is-striped is-narrow is-hoverable is-fullwidth is-size-6">
+              <tbody>
+                <tr>
+                  <td>Offset</td>
+                  <td>{{ orp_offset }}</td>
+                  <td><span class="button is-small" v-on:click="orp_set_offset">Calibrate</span></td>
+                </tr>  
+                <tr>
+                  <td>Probe Potential</td>
+                  <td>{{ orp_potential }}</td>
+                  <td><span class="button is-small" v-on:click="orp_set_potential">Set</span></td>
+                </tr>               
+              </tbody>
+            </table>
+          </section>
+          <footer class="modal-card-foot">
+            <button class="button is-danger" v-on:click="orp_reset">Reset</button>
+          </footer>
+        </div>
+        <!-- ^ modal-card -->
+      </div>
+      <!-- ^ orp_config_modal -->
+    </section>
+    <script src="js/orp.js"></script>
+    <script src="js/ph.js"></script>
+    <script src="js/ec.js"></script>
+    <script src="js/ble.js"></script>
+    <script src='js/app.js'></script>
+  </body>
+</html>
+
